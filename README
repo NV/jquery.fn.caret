@@ -1,0 +1,6 @@
+jquery.fn.caret
+
+(Yet) another attempt at creating a useful jQuery plugin for handling text ranges/selections in a cross-browser way.
+I've tried a couple of existing ones and found them buggy - so here it goes.
+
+leonidkhachaturov@gmail.com
