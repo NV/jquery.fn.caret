@@ -4,6 +4,19 @@
  * @author leonidkhachaturov@gmail.com
  */
 jQuery.fn.extend({
+    /**
+     * This method must be called in MSIE when 'onchange' and 'onkeydown' happens in a text field
+     * Example:
+     * if ($.browser.msie) $('input, textarea').bind('keypress change', function() { $(this).saveCaretPos(); });
+     */
+    saveCaretPos: function() {
+        var elem = this.get(0);
+
+        if (elem.isTextEdit) {
+            elem.caretPos = document.selection.createRange();
+        }
+    },
+
     insertAtCaretPos: function(key) {
         var targetField = this.get(0);
 
