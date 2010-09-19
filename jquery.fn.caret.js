@@ -1,68 +1,120 @@
 /**
- * jquery.fn.caret - a jQuery plugin for handling text insertion/deletion at caret position
- * @version 1.0
- * @author leonidkhachaturov@gmail.com
+ * jQuery plugin for handling text insertion/deletion at caret position
+ * Based on http://img.yandex.net/i/keyboardu.js
+ * leonya@yandex-team.ru, aandrosov@yandex-team.ru
  */
 jQuery.fn.extend({
+
     /**
-     * This method must be called in MSIE when 'onchange' and 'onkeydown' happens in a text field
-     * Example:
-     * if ($.browser.msie) $('input, textarea').bind('keypress change', function() { $(this).saveCaretPos(); });
+     * Saves caret position to data.selection
      */
     saveCaretPos: function() {
-        var elem = this.get(0);
+        var start,
+            end,
+            target = this.get(0),
+            range;
 
-        if (elem.isTextEdit) {
-            elem.caretPos = document.selection.createRange();
+        if (target.createTextRange) { //IE
+            range = document.selection.createRange().duplicate();
+            range.moveEnd('character', target.value.length);
+            if (range.text == '') {
+                start = target.value.length;
+            } else {
+                start = target.value.lastIndexOf(range.text);
+            }
+
+            range = document.selection.createRange().duplicate();
+            range.moveStart('character', -target.value.length);
+            end = range.text.length;
+
+        } else if (target.setSelectionRange) {
+            start =  target.selectionStart;
+            end = target.selectionEnd
+        } else {
+            start = end = target.value.length;
+        }
+
+        if (start >= 0 && end >= 0) {
+            this.data('selection', {
+                'start': start,
+                'end': end
+            });
+        }
+    },
+
+    setCaretPos: function(position) {
+        var target = this.get(0);
+
+        if (position >= 0) {
+            this.data('selection', {
+                'start': position,
+                'end': position
+            });
+        } else {
+            position = this.data('selection');
+            if (position) {
+                position = position.start;
+            } else {
+                return;
+            }
+        }
+
+        if (target.setSelectionRange) {
+            target.focus();
+            target.setSelectionRange(position, position);
+
+        } else if (target.createTextRange) { //IE
+            var range = target.createTextRange();
+            range.collapse(true);
+            range.moveEnd('character', position);
+            range.moveStart('character', position);
+            range.select();
         }
     },
 
     insertAtCaretPos: function(key) {
-        var targetField = this.get(0);
+        var caretPosition = this.data('selection'),
+            targetField = this.get(0),
+            newCaretPosition = caretPosition.start + key.length;
 
-        targetField.focus();
+        targetField.value = targetField.value.substring(0, caretPosition.start) + key + targetField.value.substring(caretPosition.end);
 
-        if (typeof targetField.setSelectionRange != 'undefined') {
-            var selectionStart = targetField.selectionStart;
-            var selectionEnd = targetField.selectionEnd;
-            targetField.value = targetField.value.substring(0, selectionStart) + key + targetField.value.substring(selectionEnd);
-            targetField.setSelectionRange(selectionStart + key.length, selectionStart + key.length);
+        // In IE, use setTimeout to set caret position
+        if ($.browser.msie) {
+            this.data('selection', {
+                'start': newCaretPosition,
+                'end': newCaretPosition
+            });
         } else {
-            if (typeof(targetField.createTextRange) != 'undefined' && targetField.caretPos) {
-                var caretPos = targetField.caretPos;
-                caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? key + ' ' : key;
-                caretPos.select();
-            } else {
-                targetField.value += key;
-            }
+            this.setCaretPos(newCaretPosition);
         }
 
-        targetField.focus();
     },
 
     deleteAtCaretPos: function() {
-        var targetField = this.get(0);
+        var caretPosition = this.data('selection'),
+            targetField = this.get(0),
+            newCaretPosition;
 
-        targetField.focus();
-
-        if (typeof targetField.setSelectionRange != 'undefined') {
-            var selectionStart = targetField.selectionStart;
-            var selectionEnd = targetField.selectionEnd;
-            targetField.value = targetField.value.substring(0, selectionStart - 1) + targetField.value.substring(selectionEnd);
-            targetField.setSelectionRange(selectionStart - 1, selectionStart - 1);
-        } else {
-            if (typeof(targetField.createTextRange) != 'undefined' && targetField.caretPos) {
-                var caretPos = targetField.caretPos;
-                if (!caretPos.text) {
-                    caretPos.moveStart("character", -1);
-                }
-                caretPos.text = '';
-                caretPos.select();
-            } else {
-                targetField.value = targetField.value.substring(0, targetField.value.length);
+        if (caretPosition.start === caretPosition.end) {
+            targetField.value = targetField.value.substring(0, caretPosition.start - 1) + targetField.value.substring(caretPosition.end);
+            newCaretPosition = caretPosition.start - 1;
+            if (newCaretPosition < 0) {
+                newCaretPosition = 0;
             }
+        } else {
+            targetField.value = targetField.value.substring(0, caretPosition.start) + targetField.value.substring(caretPosition.end);
+            newCaretPosition = caretPosition.start;
         }
 
-        targetField.focus();
+        if ($.browser.msie) {
+            this.data('selection', {
+                'start': newCaretPosition,
+                'end': newCaretPosition
+            });
+        } else {
+            this.setCaretPos(newCaretPosition);
+        }
+
     }
 });
