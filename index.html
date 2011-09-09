@@ -3,17 +3,20 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.3/jquery.js"></script>
 <script src="jquery.fn.caret.js"></script>
 
-<textarea id=text> </textarea>
+<textarea id=text cols=60 rows=6> </textarea><br>
+<input id=q>
 
-Start: <span id="start"></span>
-End: <span id="end"></span>
+<p>
+	Start: <span id="start"></span><br>
+	End: <span id="end"></span>
+</p>
 
 <script>
 $(function() {
 	var text = document.getElementById('text');
 	var startElem = document.getElementById('start');
 	var endElem = document.getElementById('end');
-	$('#text').keyup(function() {
+	$('#text, #q').keyup(function() {
 		var elem = $(this);
 		elem.saveCaretPos();
 		var data = elem.data('selection');
