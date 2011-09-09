@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.3/jquery.js"></script>
+<script src="jquery.fn.caret.js"></script>
+
+<textarea id=text> </textarea>
+
+Start: <span id="start"></span>
+End: <span id="end"></span>
+
+<script>
+$(function() {
+	var text = document.getElementById('text');
+	var startElem = document.getElementById('start');
+	var endElem = document.getElementById('end');
+	$('#text').keyup(function() {
+		var elem = $(this);
+		elem.saveCaretPos();
+		var data = elem.data('selection');
+		$('#start').text(data.start);
+		$('#end').text(data.end);
+	});
+});
+</script>
