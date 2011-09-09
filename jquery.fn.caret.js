@@ -14,7 +14,10 @@ jQuery.fn.extend({
             target = this.get(0),
             range;
 
-        if (target.createTextRange) { //IE
+        if ('selectionStart' in target) {
+            start = target.selectionStart;
+            end = target.selectionEnd;
+        } else if (target.createTextRange) { //IE
             if (target.tagName == 'TEXTAREA') {
                 // http://the-stickman.com/web-development/javascript/finding-selection-cursor-position-in-a-textarea-in-internet-explorer/
                 range = document.selection.createRange();
@@ -39,9 +42,6 @@ jQuery.fn.extend({
                 range.moveStart('character', -target.value.length);
                 end = range.text.length;
             }
-        } else if (target.setSelectionRange) {
-            start =  target.selectionStart;
-            end = target.selectionEnd
         } else {
             start = end = target.value.length;
         }
