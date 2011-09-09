@@ -15,18 +15,30 @@ jQuery.fn.extend({
             range;
 
         if (target.createTextRange) { //IE
-            range = document.selection.createRange().duplicate();
-            range.moveEnd('character', target.value.length);
-            if (range.text == '') {
-                start = target.value.length;
+            if (target.tagName == 'TEXTAREA') {
+                // http://the-stickman.com/web-development/javascript/finding-selection-cursor-position-in-a-textarea-in-internet-explorer/
+                range = document.selection.createRange();
+                // We'll use this as a 'dummy'
+                var storedRange = range.duplicate();
+                // Select all text
+                storedRange.moveToElementText( target );
+                // Now move 'dummy' end point to end point of original range
+                storedRange.setEndPoint('EndToEnd', range);
+                // Now we can calculate start and end points
+                start = storedRange.text.length - range.text.length;
+                end = start + range.text.length;
             } else {
-                start = target.value.lastIndexOf(range.text);
+                range = document.selection.createRange().duplicate();
+                range.moveEnd('character', target.value.length);
+                if (range.text == '') {
+                    start = target.value.length;
+                } else {
+                    start = target.value.lastIndexOf(range.text);
+                }
+                range = document.selection.createRange().duplicate();
+                range.moveStart('character', -target.value.length);
+                end = range.text.length;
             }
-
-            range = document.selection.createRange().duplicate();
-            range.moveStart('character', -target.value.length);
-            end = range.text.length;
-
         } else if (target.setSelectionRange) {
             start =  target.selectionStart;
             end = target.selectionEnd
